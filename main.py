@@ -1,13 +1,15 @@
 import sys
 from PyQt5.QtWidgets import QWidget, QApplication, QLabel, QPushButton
 from PyQt5 import uic  # тут нет ошибки, pycharm видимо реально bad для pyqt5
-from PyQt5.QtGui import QFont, QFontDatabase
+from PyQt5.QtGui import QFont, QFontDatabase, QIcon
 
 
 class MyApp(QWidget):
     def __init__(self):
         super().__init__()
         uic.loadUi('app_d2.ui', self)
+        self.setWindowTitle('Конвертор')
+        self.setWindowIcon(QIcon('logo.png'))
         # gilroy нету в базе PyQt5
         QFontDatabase.addApplicationFont("font/Gilroy-Regular.ttf")
         font = QFont('Gilroy')
@@ -32,6 +34,8 @@ class MyApp(QWidget):
         self.exel_word_btn.clicked.connect(self.exel_word_func)
         self.exel_json_btn.clicked.connect(self.exel_json_func)
 
+
+
     @staticmethod
     def exel_exel_func():
         print('exel_exel')
@@ -47,6 +51,7 @@ class MyApp(QWidget):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    app.setApplicationName('asd')
     myApp = MyApp()
     myApp.show()
     try:
