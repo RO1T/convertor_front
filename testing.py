@@ -1,7 +1,10 @@
 import sys
 from PyQt5 import uic  # тут нет ошибки, pycharm видимо реально bad для pyqt5
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QPushButton,
-                             QToolTip, QMessageBox, QLabel, QWidget)
+from PyQt5.QtWidgets import (
+    QApplication,
+    QMainWindow,
+    QWidget
+)
 from PyQt5.QtGui import QFont, QFontDatabase, QIcon
 
 
@@ -46,12 +49,13 @@ class WindowDownload(QMainWindow):
         self.win_main.show()
         self.hide()
 
-
 # Начальное окно с выбором конвертора
 class WindowChoice(QMainWindow):
     def __init__(self):
         super().__init__()
         uic.loadUi('app_1.ui', self)
+
+
         QFontDatabase.addApplicationFont("font/Gilroy-Regular.ttf")
         font = QFont('Gilroy')
         self.setWindowIcon(QIcon('logo.png'))

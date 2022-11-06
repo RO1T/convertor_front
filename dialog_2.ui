@@ -1,25 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Form</class>
- <widget class="QWidget" name="Form">
+ <class>Dialog2</class>
+ <widget class="QDialog" name="Dialog2">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>1160</width>
-    <height>591</height>
+    <height>519</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
-  </property>
-  <property name="styleSheet">
-   <string notr="true">position: relative;
-width: 1160px;
-height: 591px;
-
-background: #FFFFFF;
-border-radius: 50px;</string>
+   <string>Dialog</string>
   </property>
   <widget class="QPushButton" name="input_btn">
    <property name="geometry">
@@ -73,7 +65,6 @@ color: #FFFFFF;</string>
      <weight>62</weight>
      <italic>false</italic>
      <bold>true</bold>
-     <underline>true</underline>
     </font>
    </property>
    <property name="styleSheet">
@@ -94,23 +85,6 @@ color: #2C2C2C;</string>
    </property>
    <property name="text">
     <string>изменить файлы</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="return_btn">
-   <property name="geometry">
-    <rect>
-     <x>50</x>
-     <y>460</y>
-     <width>101</width>
-     <height>101</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">background: #D9D9D9;
-border-radius: 50%;</string>
-   </property>
-   <property name="text">
-    <string/>
    </property>
   </widget>
  </widget>
