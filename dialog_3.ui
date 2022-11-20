@@ -114,7 +114,7 @@ color: #000000;
 </string>
    </property>
    <property name="text">
-    <string>Исходные ячейки</string>
+    <string>Выбранная ячейка</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_5">
