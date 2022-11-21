@@ -1,10 +1,15 @@
 from PyQt5 import uic
 import sys
 import pandas as pd
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QDialog, QStackedWidget, QFileDialog, QMessageBox,
+from PyQt5.QtWidgets import (QApplication,
+                             QMainWindow,
+                             QWidget,
+                             QDialog,
+                             QStackedWidget,
+                             QFileDialog,
+                             QMessageBox,
                              QDesktopWidget)
 from PyQt5.QtGui import QFont, QFontDatabase, QIcon, QPixmap
-
 from PyQt5.QtCore import QAbstractTableModel, Qt
 from datetime import datetime, timedelta
 from openpyxl import Workbook
@@ -12,24 +17,25 @@ from openpyxl.utils.dataframe import dataframe_to_rows
 
 
 class DownloadWindow(QDialog):
-    def __init__(self):
+    def __init__(self, convertor):
         super(DownloadWindow, self).__init__()
-
         uic.loadUi('dialog_4.ui', self)
-
         QFontDatabase.addApplicationFont("font/Gilroy-Regular.ttf")
         font = QFont('Gilroy')
-
+        self.conv = convertor
         self.back_btn.setStyleSheet('''
         background-image : url(off.png);
         background-color : transparent;
         ''')
-
         self.download_btn.clicked.connect(self.download_fun)
         self.back_btn.clicked.connect(self.back_fun)
 
     def download_fun(self):
         print('Downloading files...')
+        path = ''
+        path = QFileDialog.getSaveFileName(self, f"Куда сохранить файл?", "",
+                                           "Excel (*.xlsx *.xls)")
+        self.conv.to_exel(path[0])
 
     def back_fun(self):
         widgets.setCurrentIndex(widgets.currentIndex() - 1)
@@ -80,7 +86,7 @@ class TableModel(QAbstractTableModel):
                 return str(self._data.index[section])
 
 
-class Convertor():
+class Convertor:
     def __init__(self, path):
         self.original = pd.read_excel(path, 'исходный формат')
         self.result = pd.read_excel(path, 'нужный формат')
@@ -211,8 +217,8 @@ class Convertor():
             return ""
         return str(val)
 
-    def to_exel(self):
-        writer = pd.ExcelWriter('result1.xlsx',
+    def to_exel(self, path):
+        writer = pd.ExcelWriter(path,
                                 engine='openpyxl')
         self.result.to_excel(writer, 'нужный формат', index=False)
 
@@ -225,16 +231,17 @@ class Convertor():
         for column in ws.columns:
             length = max(len(self.as_text(cell.value)) for cell in column)
             ws.column_dimensions[column[0].column_letter].width = length + 2
-        wb.save("result1.xlsx")
+        wb.save(path)
 
 
 class WorkWindow(QDialog):
-    def __init__(self):
+    def __init__(self, filename):
         super(WorkWindow, self).__init__()
+        self.download_w = None
         uic.loadUi('dialog_3.ui', self)
         QFontDatabase.addApplicationFont("font/Gilroy-Regular.ttf")
         # данные с екселя
-        self.filename = 'start.xlsx'
+        self.filename = filename
         df_input = pd.read_excel(self.filename, 'исходный формат')
         df_result = pd.read_excel(self.filename, 'нужный формат')
         self.convertor = Convertor(self.filename)
@@ -281,13 +288,15 @@ class WorkWindow(QDialog):
         widgets.setCurrentIndex(widgets.currentIndex() - 1)
 
     def go_to_download_file_func(self):
-        self.convertor.to_exel()
+        self.download_w = DownloadWindow(self.convertor)
+        widgets.addWidget(self.download_w)
         widgets.setCurrentIndex(widgets.currentIndex() + 1)
 
 
 class InputWindow(QDialog):
     def __init__(self):
         super(InputWindow, self).__init__()
+        self.work_w = None
         self.file_path_abs = None
         self.file_name = None
         self.file_path = None
@@ -315,8 +324,24 @@ class InputWindow(QDialog):
         # input files
         print(self.file_name)
         # after input...
+        try:
+            if widgets.count() > 2:
+                widgets.removeWidget(self.work_w)
+            self.work_w = WorkWindow(self.file_path_abs)
+            widgets.addWidget(self.work_w)
+            widgets.setCurrentIndex(widgets.currentIndex() + 1)
 
-        widgets.setCurrentIndex(widgets.currentIndex() + 1)
+
+        except ValueError:
+            self.msg = QMessageBox()
+            self.msg.setWindowTitle('Ошибка')
+            self.msg.setText('Не правильный исходный файл!')
+            self.msg.setIcon(QMessageBox.Critical)
+
+            self.msg.move(
+                self.mapToGlobal(self.rect().center() - self.msg.rect().center())
+            )
+            self.msg.exec_()
 
     def change_func(self):
         widgets.setCurrentIndex(widgets.currentIndex() - 1)
@@ -325,6 +350,7 @@ class InputWindow(QDialog):
 class MainWindow(QDialog):
     def __init__(self):
         super().__init__()
+        self.input_w = None
         uic.loadUi('dialog_1.ui', self)
         QFontDatabase.addApplicationFont("font/Gilroy-Regular.ttf")
         font = QFont('Gilroy')
@@ -341,6 +367,10 @@ class MainWindow(QDialog):
         self.msg = QMessageBox()
 
     def exel_exel_btn_fun(self):
+
+        self.input_w = InputWindow()
+        widgets.addWidget(self.input_w)
+
         # если вдруг инициализация окна заранее не сработает
         # input_w = InputWindow()
         # widgets.addWidget(input_w)
@@ -371,15 +401,6 @@ if __name__ == "__main__":
 
     main_w = MainWindow()
     widgets.addWidget(main_w)
-
-    input_w = InputWindow()
-    widgets.addWidget(input_w)
-
-    work_w = WorkWindow()
-    widgets.addWidget(work_w)
-
-    download_w = DownloadWindow()
-    widgets.addWidget(download_w)
 
     widgets.setGeometry(main_w.geometry())
     widgets.setWindowTitle('Конвертор')
