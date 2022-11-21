@@ -1,25 +1,28 @@
 from PyQt5 import uic
 import sys
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QDialog, QStackedWidget)
-from PyQt5.QtGui import QFont, QFontDatabase, QIcon, QPixmap
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import *
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
-from PyQt5.QtCore import Qt
-from datetime import datetime
-from datetime import timedelta
 import pandas as pd
+from PyQt5.QtWidgets import (QApplication,
+                             QMainWindow,
+                             QWidget,
+                             QDialog,
+                             QStackedWidget,
+                             QFileDialog,
+                             QMessageBox,
+                             QDesktopWidget)
+from PyQt5.QtGui import QFont, QFontDatabase, QIcon, QPixmap
+from PyQt5.QtCore import QAbstractTableModel, Qt
+from datetime import datetime, timedelta
 from openpyxl import Workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
 
 
 class DownloadWindow(QDialog):
-    def __init__(self):
+    def __init__(self, convertor):
         super(DownloadWindow, self).__init__()
         uic.loadUi('dialog_4.ui', self)
         QFontDatabase.addApplicationFont("font/Gilroy-Regular.ttf")
         font = QFont('Gilroy')
+        self.conv = convertor
         self.back_btn.setStyleSheet('''
         background-image : url(off.png);
         background-color : transparent;
@@ -29,21 +32,25 @@ class DownloadWindow(QDialog):
 
     def download_fun(self):
         print('Downloading files...')
+        path = ''
+        path = QFileDialog.getSaveFileName(self, f"Куда сохранить файл?", "",
+                                           "Excel (*.xlsx *.xls)")
+        self.conv.to_exel(path[0])
 
     def back_fun(self):
         widgets.setCurrentIndex(widgets.currentIndex() - 1)
 
 
-class TableModel(QtCore.QAbstractTableModel):
-
+class TableModel(QAbstractTableModel):
     def __init__(self, data):
         super(TableModel, self).__init__()
         self._data = data
 
     def load_data(self, data):
         self.beginResetModel()
-        self._data=data
+        self._data = data
         self.endResetModel()
+
     def data(self, index, role):
         if role == Qt.DisplayRole:
             value = self._data.iloc[index.row(), index.column()]
@@ -79,122 +86,7 @@ class TableModel(QtCore.QAbstractTableModel):
                 return str(self._data.index[section])
 
 
-class WorkWindow(QDialog):
-    def __init__(self):
-        super(WorkWindow, self).__init__()
-        uic.loadUi('dialog_3.ui', self)
-        QFontDatabase.addApplicationFont("font/Gilroy-Regular.ttf")
-        # данные с екселя
-        filename = 'big_start.xlsx'
-        self.convertor = Convertor(filename)
-        df_input = self.convertor.original
-        df_result = self.convertor.result
-        # кнопки
-        self.original_clear.clicked.connect(self.clear_orig)
-        self.result_clear.clicked.connect(self.clear_res)
-        self.apply_btn.clicked.connect(self.apply_changes)
-        self.change_file_btn.clicked.connect(self.change_file_func)
-        self.go_to_download_btn.clicked.connect(self.go_to_download_file_func)
-        # таблица исходная
-        self.model_original = TableModel(df_input)
-        self.table_before.setModel(self.model_original)
-        self.table_before.horizontalHeader().sectionClicked.connect(self.click_handler_original)
-        # таблица итоговая
-        self.model_result = TableModel(df_result)
-        self.table_after.setModel(self.model_result)
-        self.table_after.horizontalHeader().sectionClicked.connect(self.click_handler_result)
-
-    def clear_orig(self):
-        self.original.setText('')
-
-    def clear_res(self):
-        self.result.setText('')
-
-    def click_handler_original(self, e):
-        column_text = self.model_original.headerData(e, Qt.Horizontal, Qt.DisplayRole)
-        self.original.setText(self.original.text() + column_text + ', ')
-
-    def click_handler_result(self, e):
-        column_text = self.model_result.headerData(e, Qt.Horizontal, Qt.DisplayRole)
-        self.result.setText(self.result.text() + column_text + ', ')
-
-
-    def apply_changes(self):
-        command = self.get_command()
-        self.convertor.execute(command)
-        self.model_result.load_data(self.convertor.result)
-        self.clear_res()
-        self.clear_orig()
-
-
-    def get_command(self):
-        return (self.command.currentText(), self.original.text()[:-2].split(', '), self.result.text()[:-2].split(', '))
-
-    def change_file_func(self):
-        widgets.setCurrentIndex(widgets.currentIndex() - 1)
-
-    def go_to_download_file_func(self):
-        widgets.setCurrentIndex(widgets.currentIndex() + 1)
-
-
-class InputWindow(QDialog):
-    def __init__(self):
-        super(InputWindow, self).__init__()
-        uic.loadUi('dialog_2.ui', self)
-        QFontDatabase.addApplicationFont("font/Gilroy-Regular.ttf")
-        font = QFont('Gilroy')
-        buttons = [self.change_btn, self.input_btn]
-        for btn in buttons:
-            btn.setFont(font)
-        font_underline = self.change_btn.font()
-        font_underline.setUnderline(True)
-        self.change_btn.setFont(font_underline)
-        self.change_btn.setStyleSheet("background-color: white")
-
-        self.input_btn.clicked.connect(self.input_func)
-        self.change_btn.clicked.connect(self.change_func)
-
-    def input_func(self):
-        # input files
-        print('Inputing files...')
-        # after input...
-        # dfsdfsdfsdfsdf
-        widgets.setCurrentIndex(widgets.currentIndex() + 1)
-
-    def change_func(self):
-        widgets.setCurrentIndex(widgets.currentIndex() - 1)
-
-
-class MainWindow(QDialog):
-    def __init__(self):
-        super().__init__()
-        uic.loadUi('dialog_1.ui', self)
-        QFontDatabase.addApplicationFont("font/Gilroy-Regular.ttf")
-        font = QFont('Gilroy')
-        labels = [self.label_up, self.label_down]
-        for label in labels:
-            label.setFont(font)
-        buttons = [self.exel_exel_btn, self.exel_word_btn, self.exel_json_btn]
-        for btn in buttons:
-            btn.setFont(font)
-        self.exel_exel_btn.clicked.connect(self.exel_exel_btn_fun)
-        self.exel_word_btn.clicked.connect(self.exel_word_btn_fun)
-        self.exel_json_btn.clicked.connect(self.exel_json_btn_fun)
-
-    def exel_exel_btn_fun(self):
-        # если вдруг инициализация окна заранее не сработает
-        # input_w = InputWindow()
-        # widgets.addWidget(input_w)
-        widgets.setCurrentIndex(widgets.currentIndex() + 1)
-
-    def exel_word_btn_fun(self):
-        widgets.setCurrentIndex(widgets.currentIndex() + 1)
-
-    def exel_json_btn_fun(self):
-        widgets.setCurrentIndex(widgets.currentIndex() + 1)
-
-
-class Convertor():
+class Convertor:
     def __init__(self, path):
         self.original = pd.read_excel(path, 'исходный формат')
         self.result = pd.read_excel(path, 'нужный формат')
@@ -214,10 +106,11 @@ class Convertor():
         changer = self.get_func(command)
         columns_for_change = [self.original[x] for x in input]
         corr_columns = changer(columns_for_change)
-        # заполняет только первый столб, исправить!!!!
+
         for i in range(len(corr_columns[0]), self.original.shape[0]):
             for column in corr_columns:
                 column.append(' ')
+
         for i in range(len(corr)):
             self.between[corr[i]] = corr_columns[i]
         self.fill_result()
@@ -308,7 +201,7 @@ class Convertor():
         cars = pd.concat(columns_for_change).dropna().sort_index().astype('str').to_list()
         for car in cars:
             values.append(car)
-            if (car.replace('.', '').isdigit()):
+            if car.replace('.', '').isdigit():
                 model = ' '.join(values)
                 values.clear()
                 result.append(model)
@@ -324,8 +217,8 @@ class Convertor():
             return ""
         return str(val)
 
-    def to_exel(self):
-        writer = pd.ExcelWriter('result1.xlsx',
+    def to_exel(self, path):
+        writer = pd.ExcelWriter(path,
                                 engine='openpyxl')
         self.result.to_excel(writer, 'нужный формат', index=False)
 
@@ -338,26 +231,186 @@ class Convertor():
         for column in ws.columns:
             length = max(len(self.as_text(cell.value)) for cell in column)
             ws.column_dimensions[column[0].column_letter].width = length + 2
-        wb.save("result1.xlsx")
+        wb.save(path)
+
+
+class WorkWindow(QDialog):
+    def __init__(self, filename):
+        super(WorkWindow, self).__init__()
+        self.download_w = None
+        uic.loadUi('dialog_3.ui', self)
+        QFontDatabase.addApplicationFont("font/Gilroy-Regular.ttf")
+        # данные с екселя
+        self.filename = filename
+        df_input = pd.read_excel(self.filename, 'исходный формат')
+        df_result = pd.read_excel(self.filename, 'нужный формат')
+        self.convertor = Convertor(self.filename)
+        # кнопки
+        self.original_clear.clicked.connect(self.clear_orig)
+        self.result_clear.clicked.connect(self.clear_res)
+        self.apply_btn.clicked.connect(self.apply_changes)
+        self.change_file_btn.clicked.connect(self.change_file_func)
+        self.go_to_download_btn.clicked.connect(self.go_to_download_file_func)
+        # таблица исходная
+        self.model_original = TableModel(df_input)
+        self.table_before.setModel(self.model_original)
+        self.table_before.horizontalHeader().sectionClicked.connect(self.click_handler_original)
+        # таблица итоговая
+        self.model_result = TableModel(df_result)
+        self.table_after.setModel(self.model_result)
+        self.table_after.horizontalHeader().sectionClicked.connect(self.click_handler_result)
+
+    def clear_orig(self):
+        self.original.setText('')
+
+    def clear_res(self):
+        self.result.setText('')
+
+    def click_handler_original(self, e):
+        column_text = self.model_original.headerData(e, Qt.Horizontal, Qt.DisplayRole)
+        self.original.setText(self.original.text() + column_text + ', ')
+
+    def click_handler_result(self, e):
+        column_text = self.model_result.headerData(e, Qt.Horizontal, Qt.DisplayRole)
+        self.result.setText(self.result.text() + column_text + ', ')
+
+    def apply_changes(self):
+        command = self.get_command()
+        self.convertor.execute(command)
+        self.model_result.load_data(self.convertor.result)
+        self.clear_res()
+        self.clear_orig()
+
+    def get_command(self):
+        return self.command.currentText(), self.original.text()[:-2].split(', '), self.result.text()[:-2].split(', ')
+
+    def change_file_func(self):
+        widgets.setCurrentIndex(widgets.currentIndex() - 1)
+
+    def go_to_download_file_func(self):
+        self.download_w = DownloadWindow(self.convertor)
+        widgets.addWidget(self.download_w)
+        widgets.setCurrentIndex(widgets.currentIndex() + 1)
+
+
+class InputWindow(QDialog):
+    def __init__(self):
+        super(InputWindow, self).__init__()
+        self.work_w = None
+        self.file_path_abs = None
+        self.file_name = None
+        self.file_path = None
+        uic.loadUi('dialog_2.ui', self)
+        QFontDatabase.addApplicationFont("font/Gilroy-Regular.ttf")
+        font = QFont('Gilroy')
+        buttons = [self.change_btn, self.input_btn]
+        for btn in buttons:
+            btn.setFont(font)
+        font_underline = self.change_btn.font()
+        font_underline.setUnderline(True)
+        self.change_btn.setFont(font_underline)
+        self.change_btn.setStyleSheet("background-color: white")
+
+        self.input_btn.clicked.connect(self.input_func)
+        self.change_btn.clicked.connect(self.change_func)
+
+    def input_func(self):
+        # достаем путь до выбранного файла name_choose
+        name_choose = 'excel'
+        self.file_path = QFileDialog.getOpenFileName(self, f"Выберите файл {name_choose}", "",
+                                                     "Excel (*.xlsx *.xls)")
+        self.file_name = self.file_path[0].split('/')[-1]
+        self.file_path_abs = self.file_path[0]
+        # input files
+        print(self.file_name)
+        # after input...
+        try:
+            if widgets.count() > 2:
+                widgets.removeWidget(self.work_w)
+            self.work_w = WorkWindow(self.file_path_abs)
+            widgets.addWidget(self.work_w)
+            widgets.setCurrentIndex(widgets.currentIndex() + 1)
+
+
+        except ValueError:
+            self.msg = QMessageBox()
+            self.msg.setWindowTitle('Ошибка')
+            self.msg.setText('Не правильный исходный файл!')
+            self.msg.setIcon(QMessageBox.Critical)
+
+            self.msg.move(
+                self.mapToGlobal(self.rect().center() - self.msg.rect().center())
+            )
+            self.msg.exec_()
+
+    def change_func(self):
+        widgets.setCurrentIndex(widgets.currentIndex() - 1)
+
+
+class MainWindow(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.input_w = None
+        uic.loadUi('dialog_1.ui', self)
+        QFontDatabase.addApplicationFont("font/Gilroy-Regular.ttf")
+        font = QFont('Gilroy')
+        labels = [self.label_up, self.label_down]
+        for label in labels:
+            label.setFont(font)
+        buttons = [self.exel_exel_btn, self.exel_word_btn, self.exel_json_btn]
+        for btn in buttons:
+            btn.setFont(font)
+        self.exel_exel_btn.clicked.connect(self.exel_exel_btn_fun)
+        self.exel_word_btn.clicked.connect(self.exel_word_btn_fun)
+        self.exel_json_btn.clicked.connect(self.exel_json_btn_fun)
+
+        self.msg = QMessageBox()
+
+    def exel_exel_btn_fun(self):
+
+        self.input_w = InputWindow()
+        widgets.addWidget(self.input_w)
+
+        # если вдруг инициализация окна заранее не сработает
+        # input_w = InputWindow()
+        # widgets.addWidget(input_w)
+        widgets.setCurrentIndex(widgets.currentIndex() + 1)
+
+    def exel_word_btn_fun(self):
+        self.not_implemented_alert()
+
+    def exel_json_btn_fun(self):
+        self.not_implemented_alert()
+
+    def not_implemented_alert(self):
+        self.msg.setWindowTitle('Ошибка')
+        self.msg.setText('В процессе разработки!')
+        self.msg.setIcon(QMessageBox.Critical)
+
+        self.msg.move(
+            self.mapToGlobal(self.rect().center() - self.msg.rect().center())
+        )
+
+        self.msg.exec_()
 
 
 if __name__ == "__main__":
+
     app = QApplication(sys.argv)
     widgets = QStackedWidget()
 
     main_w = MainWindow()
-    input_w = InputWindow()
-    work_w = WorkWindow()
-    download_w = DownloadWindow()
-
     widgets.addWidget(main_w)
-    widgets.addWidget(input_w)
-    widgets.addWidget(work_w)
-    widgets.addWidget(download_w)
 
     widgets.setGeometry(main_w.geometry())
     widgets.setWindowTitle('Конвертор')
     widgets.setWindowIcon(QIcon('logo.png'))
+
+    qtRectangle = widgets.frameGeometry()
+    centerPoint = QDesktopWidget().availableGeometry().center()
+    qtRectangle.moveCenter(centerPoint)
+    widgets.move(qtRectangle.topLeft())
+
     widgets.show()
 
     try:
