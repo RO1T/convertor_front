@@ -85,7 +85,7 @@ class WorkWindow(QDialog):
         uic.loadUi('dialog_3.ui', self)
         QFontDatabase.addApplicationFont("font/Gilroy-Regular.ttf")
         # данные с екселя
-        filename = 'start.xlsx'
+        filename = 'big_start.xlsx'
         df_input = pd.read_excel(filename, 'исходный формат')
         df_result = pd.read_excel(filename, 'нужный формат')
         self.convertor = Convertor(filename)
