@@ -35,7 +35,7 @@
     </rect>
    </property>
    <property name="styleSheet">
-    <string notr="true">background-color: rgb(170, 170, 0);
+    <string notr="true">background-color: rgb();
 font-family: 'Gilroy';
 font-style: normal;
 font-weight: 400;
@@ -51,15 +51,15 @@ color: #000000;</string>
   <widget class="QLabel" name="label_2">
    <property name="geometry">
     <rect>
-     <x>326</x>
-     <y>328</y>
+     <x>330</x>
+     <y>270</y>
      <width>582</width>
      <height>48</height>
     </rect>
    </property>
    <property name="styleSheet">
     <string notr="true">
-background-color: rgb(170, 170, 0);
+background-color: rgb();
 font-family: 'Gilroy';
 font-style: normal;
 font-weight: 400;
@@ -114,7 +114,7 @@ color: #000000;
 </string>
    </property>
    <property name="text">
-    <string>Выбранная ячейка</string>
+    <string>Исходные ячейки</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_5">
@@ -190,7 +190,7 @@ color: #FFFFFF;</string>
     <string>выбрать другой файл</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label_6">
+  <widget class="QLabel" name="original">
    <property name="geometry">
     <rect>
      <x>38</x>
@@ -205,28 +205,10 @@ background-color: rgb(241, 241, 241);
 border-radius: 13px;</string>
    </property>
    <property name="text">
-    <string>TextLabel</string>
+    <string/>
    </property>
   </widget>
-  <widget class="QLabel" name="label_7">
-   <property name="geometry">
-    <rect>
-     <x>36</x>
-     <y>271</y>
-     <width>204</width>
-     <height>32</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">
-background-color: rgb(241, 241, 241);
-border-radius: 13px;</string>
-   </property>
-   <property name="text">
-    <string>TextLabel</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_8">
+  <widget class="QLabel" name="result">
    <property name="geometry">
     <rect>
      <x>36</x>
@@ -241,103 +223,7 @@ background-color: rgb(241, 241, 241);
 border-radius: 13px;</string>
    </property>
    <property name="text">
-    <string>TextLabel</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_9">
-   <property name="geometry">
-    <rect>
-     <x>326</x>
-     <y>165</y>
-     <width>251</width>
-     <height>32</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">background: #F1F1F1;</string>
-   </property>
-   <property name="text">
-    <string>TextLabel</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_10">
-   <property name="geometry">
-    <rect>
-     <x>600</x>
-     <y>165</y>
-     <width>316</width>
-     <height>32</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">background: #F1F1F1;</string>
-   </property>
-   <property name="text">
-    <string>TextLabel</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_11">
-   <property name="geometry">
-    <rect>
-     <x>939</x>
-     <y>165</y>
-     <width>92</width>
-     <height>32</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">background: #F1F1F1;</string>
-   </property>
-   <property name="text">
-    <string>TextLabel</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_13">
-   <property name="geometry">
-    <rect>
-     <x>326</x>
-     <y>206</y>
-     <width>251</width>
-     <height>69</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">background: #D9D9D9;</string>
-   </property>
-   <property name="text">
-    <string>TextLabel</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_14">
-   <property name="geometry">
-    <rect>
-     <x>600</x>
-     <y>206</y>
-     <width>316</width>
-     <height>69</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">background: #D9D9D9;</string>
-   </property>
-   <property name="text">
-    <string>TextLabel</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_15">
-   <property name="geometry">
-    <rect>
-     <x>939</x>
-     <y>206</y>
-     <width>92</width>
-     <height>69</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">background: #D9D9D9;</string>
-   </property>
-   <property name="text">
-    <string>TextLabel</string>
+    <string/>
    </property>
   </widget>
   <widget class="QPushButton" name="go_to_download_btn">
@@ -364,6 +250,82 @@ color: #FFFFFF;</string>
    </property>
    <property name="text">
     <string>скачать</string>
+   </property>
+  </widget>
+  <widget class="QTableView" name="table_before">
+   <property name="geometry">
+    <rect>
+     <x>330</x>
+     <y>170</y>
+     <width>801</width>
+     <height>81</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QTableView" name="table_after">
+   <property name="geometry">
+    <rect>
+     <x>330</x>
+     <y>330</y>
+     <width>801</width>
+     <height>81</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="command">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>270</y>
+     <width>201</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <item>
+    <property name="text">
+     <string/>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>SPLIT</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>RENAME</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>ZIP</string>
+    </property>
+   </item>
+  </widget>
+  <widget class="QPushButton" name="original_clear">
+   <property name="geometry">
+    <rect>
+     <x>250</x>
+     <y>170</y>
+     <width>21</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>X</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="result_clear">
+   <property name="geometry">
+    <rect>
+     <x>250</x>
+     <y>380</y>
+     <width>21</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>X</string>
    </property>
   </widget>
  </widget>
