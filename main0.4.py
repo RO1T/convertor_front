@@ -98,11 +98,7 @@ class Convertor:
         input = command_data[1]
         corr = command_data[2]
         self.corr = corr
-        if command == 'RENAME':
-            self.rename(command_data)
-            self.fill_result()
-            self.fix_date()
-            return
+
         changer = self.get_func(command)
         columns_for_change = [self.original[x] for x in input]
         corr_columns = changer(columns_for_change)
@@ -116,9 +112,8 @@ class Convertor:
         self.fill_result()
         self.fix_date()
 
-    def rename(self, command_data):
-        dict_rename = {command_data[1][0]: command_data[2][0]}
-        self.original.rename(columns=dict_rename, inplace=True)
+    def rename(self, columns_for_change):
+        return columns_for_change
 
     def fill_result(self):
         result = pd.DataFrame()
@@ -145,6 +140,8 @@ class Convertor:
             return self.split_column
         elif command == "ZIP":
             return self.zip_columns
+        elif command == "RENAME":
+            return self.rename
         else:  # command == "RENAME":
             return self.empty_method
 
@@ -196,18 +193,23 @@ class Convertor:
     def zip_columns(self, columns_for_change):
         if type(columns_for_change[0][0]) in [pd.Timestamp, datetime]:
             return self.zip_date(columns_for_change)
-        result = []
         values = []
-        cars = pd.concat(columns_for_change).dropna().sort_index().astype('str').to_list()
-        for car in cars:
-            values.append(car)
-            if car.replace('.', '').isdigit():
-                model = ' '.join(values)
-                values.clear()
-                result.append(model)
-        result = [result]  # -> список [["",""]]
-        # result = [[result[x]] for x in range(len(result))] #-> список списков [[""],[""]]
-        return result
+        for i in range(len(columns_for_change[0])):
+            value = []
+            for j in range(len(columns_for_change)):
+                value.append(columns_for_change[j][i])
+            values.append(' '.join(value))
+        return [values]
+
+    def have_empty_columns(self):
+        for field in self.corr_fields:
+            if self.between.__contains__(field):
+                continue
+            elif self.original.__contains__(field):
+                continue
+            else:
+                return True
+        return False
 
     def empty_method(self):
         pass
@@ -233,6 +235,27 @@ class Convertor:
             ws.column_dimensions[column[0].column_letter].width = length + 2
         wb.save(path)
 
+    def to_json(self, path):
+        def run_jsonifier(df):
+            # convert index values to string (when they're something else)
+            df.index = df.index.map(str)
+            # convert column names to string (when they're something else)
+            df.columns = df.columns.map(str)
+
+            # convert DataFrame to dict and dict to string
+            js = str(df.to_dict())
+            # store indices of double quote marks in string for later update
+            idx = [i for i, _ in enumerate(js) if _ == '"']
+            # jsonify quotes from single to double quotes
+            js = js.replace("'", '"')
+            # add \ to original double quotes to make it json-like escape sequence
+            for add, i in enumerate(idx):
+                js = js[:i + add] + '\\' + js[i + add:]
+            return js
+
+        with open(path, 'w', encoding='utf-8') as outfile:
+            outfile.write(run_jsonifier(self.result))
+
 
 class WorkWindow(QDialog):
     def __init__(self, filename):
@@ -250,7 +273,8 @@ class WorkWindow(QDialog):
         self.result_clear.clicked.connect(self.clear_res)
         self.apply_btn.clicked.connect(self.apply_changes)
         self.change_file_btn.clicked.connect(self.change_file_func)
-        self.go_to_download_btn.clicked.connect(self.go_to_download_file_func)
+        self.go_to_download_btn.clicked.connect(self.changer)
+        self.msg = QMessageBox()
         # таблица исходная
         self.model_original = TableModel(df_input)
         self.table_before.setModel(self.model_original)
@@ -259,6 +283,47 @@ class WorkWindow(QDialog):
         self.model_result = TableModel(df_result)
         self.table_after.setModel(self.model_result)
         self.table_after.horizontalHeader().sectionClicked.connect(self.click_handler_result)
+
+    def not_implemented_alert(self, message):
+        self.msg.setWindowTitle('Ошибка')
+        self.msg.setText(message)
+        self.msg.setIcon(QMessageBox.Critical)
+
+        self.msg.move(
+            self.mapToGlobal(self.rect().center() - self.msg.rect().center())
+        )
+
+        self.msg.exec_()
+
+    def empty_column_warning_no_yes(self, message):
+        self.warning = QMessageBox()
+        self.warning.setWindowTitle('Предупреждение')
+        self.warning.setText(message)
+        self.warning.setIcon(QMessageBox.Warning)
+        self.warning.move(
+            self.mapToGlobal(self.rect().center() - self.warning.rect().center())
+        )
+        self.warning.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        button = self.warning.exec_()
+        if button == QMessageBox.Yes:
+            self.go_to_download_file_func()
+        else:
+            print("No!")
+
+    def change_filled_warning_no_yes(self, message):
+        self.warning = QMessageBox()
+        self.warning.setWindowTitle('Предупреждение')
+        self.warning.setText(message)
+        self.warning.setIcon(QMessageBox.Warning)
+        self.warning.move(
+            self.mapToGlobal(self.rect().center() - self.warning.rect().center())
+        )
+        self.warning.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        button = self.warning.exec_()
+        if button == QMessageBox.Yes:
+            self.apply()
+        else:
+            print("No!")
 
     def clear_orig(self):
         self.original.setText('')
@@ -276,6 +341,29 @@ class WorkWindow(QDialog):
 
     def apply_changes(self):
         command = self.get_command()
+        no_split = command[0] == 'SPLIT' and (len(command[1]) > 1 or len(command[2]) == 1)
+        no_rename = command[0] == 'RENAME' and (len(command[1]) > 1 or len(command[2]) > 1)
+        no_zip = command[0] == 'ZIP' and (len(command[1]) == 1 or len(command[2]) > 1)
+        change_filled = False
+        for column in command[2]:
+            if column in self.convertor.between.columns:
+                change_filled = True
+
+        if (no_rename):
+            self.not_implemented_alert(
+                'Для выполнения команды RENAME в каждой таблице выберите только по одному столбцу!')
+        elif (no_split):
+            self.not_implemented_alert('Для выполнения команды SPLIT в  исходной таблице выберите только один стобец!')
+        elif (no_zip):
+            self.not_implemented_alert('Для выполнения команды ZIP в  итоговой таблице выберите только один стобец!')
+        elif change_filled:
+            self.change_filled_warning_no_yes(
+                'Вы пытаетесь изменить уже заполненную колонку, уверены, что хотите продолжить?')
+        else:
+            self.apply()
+
+    def apply(self):
+        command = self.get_command()
         self.convertor.execute(command)
         self.model_result.load_data(self.convertor.result)
         self.clear_res()
@@ -286,6 +374,12 @@ class WorkWindow(QDialog):
 
     def change_file_func(self):
         widgets.setCurrentIndex(widgets.currentIndex() - 1)
+
+    def changer(self):
+        if self.convertor.have_empty_columns():
+            self.empty_column_warning_no_yes('У вас остались незаполненные колонки, уверены, что хотите продолжить?')
+        else:
+            self.go_to_download_file_func()
 
     def go_to_download_file_func(self):
         self.download_w = DownloadWindow(self.convertor)
