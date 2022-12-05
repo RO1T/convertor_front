@@ -31,7 +31,6 @@ class DownloadWindow(QDialog):
         self.back_btn.clicked.connect(self.back_fun)
 
     def download_fun(self):
-        print('Downloading files...')
         path = ''
         path = QFileDialog.getSaveFileName(self, f"Куда сохранить файл?", "",
                                            "Excel (*.xlsx *.xls)")
@@ -39,6 +38,7 @@ class DownloadWindow(QDialog):
 
     def back_fun(self):
         widgets.setCurrentIndex(widgets.currentIndex() - 1)
+        widgets.removeWidget(self)
 
 
 class TableModel(QAbstractTableModel):
@@ -307,8 +307,6 @@ class WorkWindow(QDialog):
         button = self.warning.exec_()
         if button == QMessageBox.Yes:
             self.go_to_download_file_func()
-        else:
-            print("No!")
 
     def change_filled_warning_no_yes(self, message):
         self.warning = QMessageBox()
@@ -323,7 +321,8 @@ class WorkWindow(QDialog):
         if button == QMessageBox.Yes:
             self.apply()
         else:
-            print("No!")
+            pass
+            # No
 
     def clear_orig(self):
         self.original.setText('')
@@ -374,6 +373,7 @@ class WorkWindow(QDialog):
 
     def change_file_func(self):
         widgets.setCurrentIndex(widgets.currentIndex() - 1)
+        widgets.removeWidget(self)
 
     def changer(self):
         if self.convertor.have_empty_columns():
@@ -390,6 +390,7 @@ class WorkWindow(QDialog):
 class InputWindow(QDialog):
     def __init__(self):
         super(InputWindow, self).__init__()
+        self.not_found = None
         self.work_w = None
         self.file_path_abs = None
         self.file_name = None
@@ -411,34 +412,44 @@ class InputWindow(QDialog):
     def input_func(self):
         # достаем путь до выбранного файла name_choose
         name_choose = 'excel'
+
         self.file_path = QFileDialog.getOpenFileName(self, f"Выберите файл {name_choose}", "",
                                                      "Excel (*.xlsx *.xls)")
         self.file_name = self.file_path[0].split('/')[-1]
         self.file_path_abs = self.file_path[0]
-        # input files
-        print(self.file_name)
-        # after input...
-        try:
-            if widgets.count() > 2:
-                widgets.removeWidget(self.work_w)
-            self.work_w = WorkWindow(self.file_path_abs)
-            widgets.addWidget(self.work_w)
-            widgets.setCurrentIndex(widgets.currentIndex() + 1)
-
-
-        except ValueError:
-            self.msg = QMessageBox()
-            self.msg.setWindowTitle('Ошибка')
-            self.msg.setText('Не правильный исходный файл!')
-            self.msg.setIcon(QMessageBox.Critical)
-
-            self.msg.move(
-                self.mapToGlobal(self.rect().center() - self.msg.rect().center())
+        if self.file_path_abs == '':
+            self.not_found = QMessageBox()
+            self.not_found.setWindowTitle('Ошибка')
+            self.not_found.setText('Вы должны выбрать файл!\nЕсли вы передумали, нажмите No.')
+            self.not_found.setIcon(QMessageBox.Warning)
+            self.not_found.move(
+                self.mapToGlobal(self.rect().center() - self.not_found.rect().center())
             )
-            self.msg.exec_()
+            self.not_found.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            button = self.not_found.exec_()
+            if button == QMessageBox.No:
+                self.change_func()
+            else:
+                self.input_func()
+        else:
+            try:
+                self.work_w = WorkWindow(self.file_path_abs)
+                widgets.addWidget(self.work_w)
+                widgets.setCurrentIndex(widgets.currentIndex() + 1)
+            except ValueError:
+                self.msg = QMessageBox()
+                self.msg.setWindowTitle('Ошибка')
+                self.msg.setText('Не правильный исходный файл!')
+                self.msg.setIcon(QMessageBox.Critical)
+
+                self.msg.move(
+                    self.mapToGlobal(self.rect().center() - self.msg.rect().center())
+                )
+                self.msg.exec_()
 
     def change_func(self):
         widgets.setCurrentIndex(widgets.currentIndex() - 1)
+        widgets.removeWidget(self)
 
 
 class MainWindow(QDialog):
@@ -497,6 +508,7 @@ if __name__ == "__main__":
     widgets.addWidget(main_w)
 
     widgets.setGeometry(main_w.geometry())
+    widgets.setMaximumSize(1160, 520)
     widgets.setWindowTitle('Конвертор')
     widgets.setWindowIcon(QIcon('logo.png'))
 
@@ -507,7 +519,4 @@ if __name__ == "__main__":
 
     widgets.show()
 
-    try:
-        sys.exit(app.exec_())
-    except:
-        print('Leaving')
+    sys.exit(app.exec_())
