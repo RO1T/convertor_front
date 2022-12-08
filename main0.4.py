@@ -2,14 +2,12 @@ from PyQt5 import uic
 import sys
 import pandas as pd
 from PyQt5.QtWidgets import (QApplication,
-                             QMainWindow,
-                             QWidget,
                              QDialog,
                              QStackedWidget,
                              QFileDialog,
                              QMessageBox,
                              QDesktopWidget)
-from PyQt5.QtGui import QFont, QFontDatabase, QIcon, QPixmap
+from PyQt5.QtGui import QFont, QFontDatabase, QIcon
 from PyQt5.QtCore import QAbstractTableModel, Qt
 from datetime import datetime, timedelta
 from openpyxl import Workbook
@@ -17,8 +15,9 @@ from openpyxl.utils.dataframe import dataframe_to_rows
 
 
 class DownloadWindow(QDialog):
-    def __init__(self, convertor):
+    def __init__(self, convertor, name_chose):
         super(DownloadWindow, self).__init__()
+        self.name_chose = name_chose
         uic.loadUi('dialog_4.ui', self)
         QFontDatabase.addApplicationFont("font/Gilroy-Regular.ttf")
         font = QFont('Gilroy')
@@ -31,10 +30,14 @@ class DownloadWindow(QDialog):
         self.back_btn.clicked.connect(self.back_fun)
 
     def download_fun(self):
-        path = ''
-        path = QFileDialog.getSaveFileName(self, f"Куда сохранить файл?", "",
-                                           "Excel (*.xlsx *.xls)")
-        self.conv.to_exel(path[0])
+        if self.name_chose == 'exel':
+            path = QFileDialog.getSaveFileName(self, f"Куда сохранить файл?", "",
+                                               "Excel (*.xlsx *.xls)")
+            self.conv.to_exel(path[0])
+        elif self.name_chose == 'json':
+            path = QFileDialog.getSaveFileName(self, f"Куда сохранить файл?", "",
+                                               "Json (*.json)")
+            self.conv.to_json(path[0])
 
     def back_fun(self):
         widgets.setCurrentIndex(widgets.currentIndex() - 1)
@@ -258,9 +261,10 @@ class Convertor:
 
 
 class WorkWindow(QDialog):
-    def __init__(self, filename):
+    def __init__(self, filename, name_chose):
         super(WorkWindow, self).__init__()
         self.download_w = None
+        self.name_chose = name_chose
         uic.loadUi('dialog_3.ui', self)
         QFontDatabase.addApplicationFont("font/Gilroy-Regular.ttf")
         # данные с екселя
@@ -382,14 +386,15 @@ class WorkWindow(QDialog):
             self.go_to_download_file_func()
 
     def go_to_download_file_func(self):
-        self.download_w = DownloadWindow(self.convertor)
+        self.download_w = DownloadWindow(self.convertor, self.name_chose)
         widgets.addWidget(self.download_w)
         widgets.setCurrentIndex(widgets.currentIndex() + 1)
 
 
 class InputWindow(QDialog):
-    def __init__(self):
+    def __init__(self, name_chose):
         super(InputWindow, self).__init__()
+        self.name_chose = name_chose
         self.not_found = None
         self.work_w = None
         self.file_path_abs = None
@@ -410,11 +415,8 @@ class InputWindow(QDialog):
         self.change_btn.clicked.connect(self.change_func)
 
     def input_func(self):
-        # достаем путь до выбранного файла name_choose
-        name_choose = 'excel'
-
-        self.file_path = QFileDialog.getOpenFileName(self, f"Выберите файл {name_choose}", "",
-                                                     "Excel (*.xlsx *.xls)")
+        self.file_path = QFileDialog.getOpenFileName(self, f"Выберите файл {self.name_chose}", "",
+                                                 "Excel (*.xlsx *.xls)")
         self.file_name = self.file_path[0].split('/')[-1]
         self.file_path_abs = self.file_path[0]
         if self.file_path_abs == '':
@@ -433,7 +435,7 @@ class InputWindow(QDialog):
                 self.input_func()
         else:
             try:
-                self.work_w = WorkWindow(self.file_path_abs)
+                self.work_w = WorkWindow(self.file_path_abs, self.name_chose)
                 widgets.addWidget(self.work_w)
                 widgets.setCurrentIndex(widgets.currentIndex() + 1)
             except ValueError:
@@ -472,20 +474,17 @@ class MainWindow(QDialog):
         self.msg = QMessageBox()
 
     def exel_exel_btn_fun(self):
-
-        self.input_w = InputWindow()
+        self.input_w = InputWindow('exel')
         widgets.addWidget(self.input_w)
-
-        # если вдруг инициализация окна заранее не сработает
-        # input_w = InputWindow()
-        # widgets.addWidget(input_w)
         widgets.setCurrentIndex(widgets.currentIndex() + 1)
 
     def exel_word_btn_fun(self):
         self.not_implemented_alert()
 
     def exel_json_btn_fun(self):
-        self.not_implemented_alert()
+        self.input_w = InputWindow('json')
+        widgets.addWidget(self.input_w)
+        widgets.setCurrentIndex(widgets.currentIndex() + 1)
 
     def not_implemented_alert(self):
         self.msg.setWindowTitle('Ошибка')
@@ -508,10 +507,10 @@ if __name__ == "__main__":
     widgets.addWidget(main_w)
 
     widgets.setGeometry(main_w.geometry())
-    widgets.setMaximumSize(1160, 520)
+
     widgets.setWindowTitle('Конвертор')
     widgets.setWindowIcon(QIcon('logo.png'))
-
+    widgets.setMaximumSize(1160, 520)
     qtRectangle = widgets.frameGeometry()
     centerPoint = QDesktopWidget().availableGeometry().center()
     qtRectangle.moveCenter(centerPoint)
