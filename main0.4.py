@@ -29,15 +29,40 @@ class DownloadWindow(QDialog):
         self.download_btn.clicked.connect(self.download_fun)
         self.back_btn.clicked.connect(self.back_fun)
 
+    def call_error(self):
+        self.not_found = QMessageBox()
+        self.not_found.setWindowTitle('Ошибка')
+        self.not_found.setText('Вы должны указать, куда загружать файл!')
+        self.not_found.setIcon(QMessageBox.Warning)
+        self.not_found.move(
+            self.mapToGlobal(self.rect().center() - self.not_found.rect().center())
+        )
+        self.not_found.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        return self.not_found.exec_()
+
     def download_fun(self):
         if self.name_chose == 'exel':
-            path = QFileDialog.getSaveFileName(self, f"Куда сохранить файл?", "",
-                                               "Excel (*.xlsx *.xls)")
-            self.conv.to_exel(path[0])
+            self.path = QFileDialog.getSaveFileName(self, f"Куда сохранить файл?", "",
+                                                    "Excel (*.xlsx *.xls)")
+            self.file_name = self.path[0].split('/')[-1]
+            self.file_path_abs = self.path[0]
+            if self.file_path_abs == '':
+                button = self.call_error()
+                if button != QMessageBox.No:
+                    self.download_fun()
+            else:
+                self.conv.to_exel(self.path[0])
         elif self.name_chose == 'json':
-            path = QFileDialog.getSaveFileName(self, f"Куда сохранить файл?", "",
-                                               "Json (*.json)")
-            self.conv.to_json(path[0])
+            self.path = QFileDialog.getSaveFileName(self, f"Куда сохранить файл?", "",
+                                                    "Json (*.json)")
+            self.file_name = self.path[0].split('/')[-1]
+            self.file_path_abs = self.path[0]
+            if self.file_path_abs == '':
+                button = self.call_error()
+                if button != QMessageBox.No:
+                    self.download_fun()
+            else:
+                self.conv.to_json(self.path[0])
 
     def back_fun(self):
         widgets.setCurrentIndex(widgets.currentIndex() - 1)
@@ -416,7 +441,7 @@ class InputWindow(QDialog):
 
     def input_func(self):
         self.file_path = QFileDialog.getOpenFileName(self, f"Выберите файл {self.name_chose}", "",
-                                                 "Excel (*.xlsx *.xls)")
+                                                     "Excel (*.xlsx *.xls)")
         self.file_name = self.file_path[0].split('/')[-1]
         self.file_path_abs = self.file_path[0]
         if self.file_path_abs == '':
@@ -499,7 +524,6 @@ class MainWindow(QDialog):
 
 
 if __name__ == "__main__":
-
     app = QApplication(sys.argv)
     widgets = QStackedWidget()
 
