@@ -376,17 +376,16 @@ class WorkWindow(QDialog):
         for column in command[2]:
             if column in self.convertor.between.columns:
                 change_filled = True
-
-        if (no_rename):
-            self.not_implemented_alert(
-                'Для выполнения команды RENAME в каждой таблице выберите только по одному столбцу!')
-        elif (no_split):
+        if command[0] == '':
+            self.not_implemented_alert('Вы ничего не сделали!')
+        elif no_rename:
+            self.not_implemented_alert('Для выполнения команды RENAME в каждой таблице выберите только по одному столбцу!')
+        elif no_split:
             self.not_implemented_alert('Для выполнения команды SPLIT в  исходной таблице выберите только один стобец!')
-        elif (no_zip):
+        elif no_zip:
             self.not_implemented_alert('Для выполнения команды ZIP в  итоговой таблице выберите только один стобец!')
         elif change_filled:
-            self.change_filled_warning_no_yes(
-                'Вы пытаетесь изменить уже заполненную колонку, уверены, что хотите продолжить?')
+            self.change_filled_warning_no_yes('Вы пытаетесь изменить уже заполненную колонку, уверены, что хотите продолжить?')
         else:
             self.apply()
 
@@ -534,7 +533,7 @@ if __name__ == "__main__":
 
     widgets.setWindowTitle('Конвертор')
     widgets.setWindowIcon(QIcon('logo.png'))
-    widgets.setMaximumSize(1160, 520)
+    widgets.setMaximumSize(1160, 591)
     qtRectangle = widgets.frameGeometry()
     centerPoint = QDesktopWidget().availableGeometry().center()
     qtRectangle.moveCenter(centerPoint)
