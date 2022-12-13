@@ -117,6 +117,7 @@ class TableModel(QAbstractTableModel):
 class Convertor:
     def __init__(self, path):
         self.original = pd.read_excel(path, 'исходный формат')
+        self.original =self.original.fillna('')
         self.result = pd.read_excel(path, 'нужный формат')
         self.corr_fields = self.result.columns
         self.between = pd.DataFrame()
@@ -151,7 +152,7 @@ class Convertor:
             elif self.original.__contains__(field):
                 result[field] = self.original[field]
             else:
-                result[field] = [' ' for i in range(len(result))]
+                result[field] = [' ' for i in range(self.original.shape[0])]
         self.result = result
 
     def fix_date(self):
@@ -185,8 +186,10 @@ class Convertor:
             result.append([])
         for value in values:
             # проверка на длину
+            if value=='':
+                continue
             splitted_row = value.split(splitter)
-            for i in range(len(splitted_row)):
+            for i in range(length):
                 result[i].append(splitted_row[i])
         return result
 
@@ -197,6 +200,8 @@ class Convertor:
         for i in range(length):
             result.append([])
         for value in values:
+            if value=='':
+                continue
             # проверка на длину
             date = [datetime.date(value), datetime.time(value)]
             # (value.year,value.month,value.day)
@@ -294,9 +299,9 @@ class WorkWindow(QDialog):
         QFontDatabase.addApplicationFont("font/Gilroy-Regular.ttf")
         # данные с екселя
         self.filename = filename
-        df_input = pd.read_excel(self.filename, 'исходный формат')
-        df_result = pd.read_excel(self.filename, 'нужный формат')
         self.convertor = Convertor(self.filename)
+        df_input = self.convertor.original
+        df_result = self.convertor.result
         # кнопки
         self.original_clear.clicked.connect(self.clear_orig)
         self.result_clear.clicked.connect(self.clear_res)
@@ -379,22 +384,28 @@ class WorkWindow(QDialog):
         if command[0] == '':
             self.not_implemented_alert('Вы ничего не сделали!')
         elif no_rename:
-            self.not_implemented_alert('Для выполнения команды RENAME в каждой таблице выберите только по одному столбцу!')
+            self.not_implemented_alert(
+                'Для выполнения команды RENAME в каждой таблице выберите только по одному столбцу!')
         elif no_split:
             self.not_implemented_alert('Для выполнения команды SPLIT в  исходной таблице выберите только один стобец!')
         elif no_zip:
             self.not_implemented_alert('Для выполнения команды ZIP в  итоговой таблице выберите только один стобец!')
         elif change_filled:
-            self.change_filled_warning_no_yes('Вы пытаетесь изменить уже заполненную колонку, уверены, что хотите продолжить?')
+            self.change_filled_warning_no_yes(
+                'Вы пытаетесь изменить уже заполненную колонку, уверены, что хотите продолжить?')
         else:
             self.apply()
 
     def apply(self):
-        command = self.get_command()
-        self.convertor.execute(command)
-        self.model_result.load_data(self.convertor.result)
-        self.clear_res()
-        self.clear_orig()
+        try:
+            command = self.get_command()
+            self.convertor.execute(command)
+            self.model_result.load_data(self.convertor.result)
+        except:
+            self.not_implemented_alert('Данную функцию нельзя выполнить')
+        finally:
+            self.clear_res()
+            self.clear_orig()
 
     def get_command(self):
         return self.command.currentText(), self.original.text()[:-2].split(', '), self.result.text()[:-2].split(', ')
