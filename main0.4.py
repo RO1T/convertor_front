@@ -1,6 +1,7 @@
 from PyQt5 import uic
 import sys
 import pandas as pd
+import json
 from PyQt5.QtWidgets import (QApplication,
                              QDialog,
                              QStackedWidget,
@@ -269,26 +270,10 @@ class Convertor:
         wb.save(path)
 
     def to_json(self, path):
-        def run_jsonifier(df):
-            # convert index values to string (when they're something else)
-            df.index = df.index.map(str)
-            # convert column names to string (when they're something else)
-            df.columns = df.columns.map(str)
-
-            # convert DataFrame to dict and dict to string
-            js = str(df.to_dict())
-            # store indices of double quote marks in string for later update
-            idx = [i for i, _ in enumerate(js) if _ == '"']
-            # jsonify quotes from single to double quotes
-            js = js.replace("'", '"')
-            # add \ to original double quotes to make it json-like escape sequence
-            for add, i in enumerate(idx):
-                js = js[:i + add] + '\\' + js[i + add:]
-            return js
-
+        res = self.result.to_json(orient="index")
+        parsed = json.loads(res)
         with open(path, 'w', encoding='utf-8') as outfile:
-            outfile.write(run_jsonifier(self.result))
-
+            json.dump(parsed, outfile, indent=4, ensure_ascii=False)
 
 class WorkWindow(QDialog):
     def __init__(self, filename, name_chose):
