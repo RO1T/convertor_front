@@ -118,7 +118,7 @@ class TableModel(QAbstractTableModel):
 class Convertor:
     def __init__(self, path):
         self.original = pd.read_excel(path, 'исходный формат')
-        self.original =self.original.fillna('')
+        self.original = self.original.fillna('')
         self.result = pd.read_excel(path, 'нужный формат')
         self.corr_fields = self.result.columns
         self.between = pd.DataFrame()
@@ -187,7 +187,7 @@ class Convertor:
             result.append([])
         for value in values:
             # проверка на длину
-            if value=='':
+            if value == '':
                 continue
             splitted_row = value.split(splitter)
             for i in range(length):
@@ -201,7 +201,7 @@ class Convertor:
         for i in range(length):
             result.append([])
         for value in values:
-            if value=='':
+            if value == '':
                 continue
             # проверка на длину
             date = [datetime.date(value), datetime.time(value)]
@@ -271,9 +271,10 @@ class Convertor:
 
     def to_json(self, path):
         res = self.result.to_json(orient="index")
-        parsed = json.loads(res)
+        parsed = {f"{path.split('/')[-1].split('.')[0]}": json.loads(res)}
         with open(path, 'w', encoding='utf-8') as outfile:
             json.dump(parsed, outfile, indent=4, ensure_ascii=False)
+
 
 class WorkWindow(QDialog):
     def __init__(self, filename, name_chose):
