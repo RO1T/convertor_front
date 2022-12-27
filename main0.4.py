@@ -277,10 +277,12 @@ class Convertor:
 
 
 class WorkWindow(QDialog):
-    def __init__(self, filename, name_chose):
+    def __init__(self, filename, name_chose, json_path):
         super(WorkWindow, self).__init__()
         self.download_w = None
         self.name_chose = name_chose
+        self.json_path = json_path
+        print(self.json_path)
         uic.loadUi('dialog_3.ui', self)
         QFontDatabase.addApplicationFont("font/Gilroy-Regular.ttf")
         # данные с екселя
@@ -421,19 +423,51 @@ class InputWindow(QDialog):
         self.file_path_abs = None
         self.file_name = None
         self.file_path = None
-        uic.loadUi('dialog_2.ui', self)
+        self.json_path = None
         QFontDatabase.addApplicationFont("font/Gilroy-Regular.ttf")
         font = QFont('Gilroy')
-        buttons = [self.change_btn, self.input_btn]
-        for btn in buttons:
-            btn.setFont(font)
-        font_underline = self.change_btn.font()
-        font_underline.setUnderline(True)
-        self.change_btn.setFont(font_underline)
-        self.change_btn.setStyleSheet("background-color: white")
 
-        self.input_btn.clicked.connect(self.input_func)
-        self.change_btn.clicked.connect(self.change_func)
+        if self.name_chose == 'exel':
+            uic.loadUi('dialog_2.ui', self)
+            self.change_btn.setFont(font)
+            self.input_btn.setFont(font)
+            font_underline = self.change_btn.font()
+            font_underline.setUnderline(True)
+            self.change_btn.setFont(font_underline)
+            self.change_btn.setStyleSheet("background-color: white")
+            self.input_btn.clicked.connect(self.input_func)
+            self.change_btn.clicked.connect(self.change_func)
+        elif self.name_chose == 'json':
+            uic.loadUi('dialog_2.1.ui', self)
+            self.change_btn.setFont(font)
+            self.input_btn_ex.setFont(font)
+            self.input_btn_js.setFont(font)
+            self.label.setFont(font)
+            font_underline = self.change_btn.font()
+            font_underline.setUnderline(True)
+            self.change_btn.setFont(font_underline)
+            self.change_btn.setStyleSheet("background-color: white")
+
+            self.input_btn_ex.clicked.connect(self.input_func)
+            self.input_btn_js.clicked.connect(self.input_json_func)
+
+            self.change_btn.clicked.connect(self.change_func)
+
+    def input_json_func(self):
+        self.json_path = QFileDialog.getOpenFileName(self, f"Выберите файл {self.name_chose}", "",
+                                                     "Json (*.json)")[0]
+        if self.json_path == '':
+            self.not_found = QMessageBox()
+            self.not_found.setWindowTitle('Ошибка')
+            self.not_found.setText('Вы должны выбрать файл!\nЕсли вы передумали, нажмите No.')
+            self.not_found.setIcon(QMessageBox.Warning)
+            self.not_found.move(
+                self.mapToGlobal(self.rect().center() - self.not_found.rect().center())
+            )
+            self.not_found.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            button = self.not_found.exec_()
+            if button != QMessageBox.No:
+                self.input_json_func()
 
     def input_func(self):
         self.file_path = QFileDialog.getOpenFileName(self, f"Выберите файл {self.name_chose}", "",
@@ -456,7 +490,7 @@ class InputWindow(QDialog):
                 self.input_func()
         else:
             try:
-                self.work_w = WorkWindow(self.file_path_abs, self.name_chose)
+                self.work_w = WorkWindow(self.file_path_abs, self.name_chose, self.json_path)
                 widgets.addWidget(self.work_w)
                 widgets.setCurrentIndex(widgets.currentIndex() + 1)
             except ValueError:
