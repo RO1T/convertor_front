@@ -117,6 +117,7 @@ class TableModel(QAbstractTableModel):
 class Convertor:
     def __init__(self, path):
         self.original = pd.read_excel(path, 'исходный формат')
+        self.original = self.original.fillna('')
         self.result = pd.read_excel(path, 'нужный формат')
         self.corr_fields = self.result.columns
         self.between = pd.DataFrame()
@@ -151,7 +152,7 @@ class Convertor:
             elif self.original.__contains__(field):
                 result[field] = self.original[field]
             else:
-                result[field] = [' ' for i in range(len(result))]
+                result[field] = [' ' for i in range(self.original.shape[0])]
         self.result = result
 
     def fix_date(self):
@@ -185,8 +186,10 @@ class Convertor:
             result.append([])
         for value in values:
             # проверка на длину
+            if value == '':
+                continue
             splitted_row = value.split(splitter)
-            for i in range(len(splitted_row)):
+            for i in range(length):
                 result[i].append(splitted_row[i])
         return result
 
@@ -197,6 +200,8 @@ class Convertor:
         for i in range(length):
             result.append([])
         for value in values:
+            if value == '':
+                continue
             # проверка на длину
             date = [datetime.date(value), datetime.time(value)]
             # (value.year,value.month,value.day)
@@ -286,17 +291,19 @@ class Convertor:
 
 
 class WorkWindow(QDialog):
-    def __init__(self, filename, name_chose):
+    def __init__(self, filename, name_chose, json_path):
         super(WorkWindow, self).__init__()
         self.download_w = None
         self.name_chose = name_chose
+        self.json_path = json_path
+        print(self.json_path)
         uic.loadUi('dialog_3.ui', self)
         QFontDatabase.addApplicationFont("font/Gilroy-Regular.ttf")
         # данные с екселя
         self.filename = filename
-        df_input = pd.read_excel(self.filename, 'исходный формат')
-        df_result = pd.read_excel(self.filename, 'нужный формат')
         self.convertor = Convertor(self.filename)
+        df_input = self.convertor.original
+        df_result = self.convertor.result
         # кнопки
         self.original_clear.clicked.connect(self.clear_orig)
         self.result_clear.clicked.connect(self.clear_res)
@@ -379,22 +386,28 @@ class WorkWindow(QDialog):
         if command[0] == '':
             self.not_implemented_alert('Вы ничего не сделали!')
         elif no_rename:
-            self.not_implemented_alert('Для выполнения команды RENAME в каждой таблице выберите только по одному столбцу!')
+            self.not_implemented_alert(
+                'Для выполнения команды RENAME в каждой таблице выберите только по одному столбцу!')
         elif no_split:
             self.not_implemented_alert('Для выполнения команды SPLIT в  исходной таблице выберите только один стобец!')
         elif no_zip:
             self.not_implemented_alert('Для выполнения команды ZIP в  итоговой таблице выберите только один стобец!')
         elif change_filled:
-            self.change_filled_warning_no_yes('Вы пытаетесь изменить уже заполненную колонку, уверены, что хотите продолжить?')
+            self.change_filled_warning_no_yes(
+                'Вы пытаетесь изменить уже заполненную колонку, уверены, что хотите продолжить?')
         else:
             self.apply()
 
     def apply(self):
-        command = self.get_command()
-        self.convertor.execute(command)
-        self.model_result.load_data(self.convertor.result)
-        self.clear_res()
-        self.clear_orig()
+        try:
+            command = self.get_command()
+            self.convertor.execute(command)
+            self.model_result.load_data(self.convertor.result)
+        except:
+            self.not_implemented_alert('Данную функцию нельзя выполнить')
+        finally:
+            self.clear_res()
+            self.clear_orig()
 
     def get_command(self):
         return self.command.currentText(), self.original.text()[:-2].split(', '), self.result.text()[:-2].split(', ')
@@ -424,19 +437,51 @@ class InputWindow(QDialog):
         self.file_path_abs = None
         self.file_name = None
         self.file_path = None
-        uic.loadUi('dialog_2.ui', self)
+        self.json_path = None
         QFontDatabase.addApplicationFont("font/Gilroy-Regular.ttf")
         font = QFont('Gilroy')
-        buttons = [self.change_btn, self.input_btn]
-        for btn in buttons:
-            btn.setFont(font)
-        font_underline = self.change_btn.font()
-        font_underline.setUnderline(True)
-        self.change_btn.setFont(font_underline)
-        self.change_btn.setStyleSheet("background-color: white")
 
-        self.input_btn.clicked.connect(self.input_func)
-        self.change_btn.clicked.connect(self.change_func)
+        if self.name_chose == 'exel':
+            uic.loadUi('dialog_2.ui', self)
+            self.change_btn.setFont(font)
+            self.input_btn.setFont(font)
+            font_underline = self.change_btn.font()
+            font_underline.setUnderline(True)
+            self.change_btn.setFont(font_underline)
+            self.change_btn.setStyleSheet("background-color: white")
+            self.input_btn.clicked.connect(self.input_func)
+            self.change_btn.clicked.connect(self.change_func)
+        elif self.name_chose == 'json':
+            uic.loadUi('dialog_2.1.ui', self)
+            self.change_btn.setFont(font)
+            self.input_btn_ex.setFont(font)
+            self.input_btn_js.setFont(font)
+            self.label.setFont(font)
+            font_underline = self.change_btn.font()
+            font_underline.setUnderline(True)
+            self.change_btn.setFont(font_underline)
+            self.change_btn.setStyleSheet("background-color: white")
+
+            self.input_btn_ex.clicked.connect(self.input_func)
+            self.input_btn_js.clicked.connect(self.input_json_func)
+
+            self.change_btn.clicked.connect(self.change_func)
+
+    def input_json_func(self):
+        self.json_path = QFileDialog.getOpenFileName(self, f"Выберите файл {self.name_chose}", "",
+                                                     "Json (*.json)")[0]
+        if self.json_path == '':
+            self.not_found = QMessageBox()
+            self.not_found.setWindowTitle('Ошибка')
+            self.not_found.setText('Вы должны выбрать файл!\nЕсли вы передумали, нажмите No.')
+            self.not_found.setIcon(QMessageBox.Warning)
+            self.not_found.move(
+                self.mapToGlobal(self.rect().center() - self.not_found.rect().center())
+            )
+            self.not_found.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            button = self.not_found.exec_()
+            if button != QMessageBox.No:
+                self.input_json_func()
 
     def input_func(self):
         self.file_path = QFileDialog.getOpenFileName(self, f"Выберите файл {self.name_chose}", "",
@@ -459,7 +504,7 @@ class InputWindow(QDialog):
                 self.input_func()
         else:
             try:
-                self.work_w = WorkWindow(self.file_path_abs, self.name_chose)
+                self.work_w = WorkWindow(self.file_path_abs, self.name_chose, self.json_path)
                 widgets.addWidget(self.work_w)
                 widgets.setCurrentIndex(widgets.currentIndex() + 1)
             except ValueError:

@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog2</class>
+ <widget class="QDialog" name="Dialog2">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1160</width>
+    <height>519</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="leftMargin">
+    <number>50</number>
+   </property>
+   <property name="topMargin">
+    <number>200</number>
+   </property>
+   <property name="rightMargin">
+    <number>50</number>
+   </property>
+   <property name="bottomMargin">
+    <number>100</number>
+   </property>
+   <item>
+    <widget class="QLabel" name="label">
+     <property name="styleSheet">
+      <string notr="true">
+font-weight: 500;
+font-size: 20px;
+line-height: 38px;
+text-align: center;</string>
+     </property>
+     <property name="text">
+      <string>Если у вас нету специфичной структуры JSON, то используйте только excel.</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QSplitter" name="splitter_2">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <widget class="QSplitter" name="splitter">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <widget class="QPushButton" name="input_btn_ex">
+       <property name="styleSheet">
+        <string notr="true">position: absolute;
+width: 493px;
+height: 114px;
+left: 350px;
+top: 239px;
+
+background: #F23026;
+border-radius: 25px;
+
+position: absolute;
+width: 500px;
+height: 40px;
+left: 347px;
+top: 278px;
+
+font-weight: 500;
+font-size: 31px;
+line-height: 38px;
+text-align: center;
+
+color: #FFFFFF;</string>
+       </property>
+       <property name="text">
+        <string>загрузить excel</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="input_btn_js">
+       <property name="styleSheet">
+        <string notr="true">position: absolute;
+width: 493px;
+height: 114px;
+left: 350px;
+top: 239px;
+
+background: #F23026;
+border-radius: 25px;
+
+position: absolute;
+width: 500px;
+height: 40px;
+left: 347px;
+top: 278px;
+
+font-weight: 500;
+font-size: 31px;
+line-height: 38px;
+text-align: center;
+
+color: #FFFFFF;</string>
+       </property>
+       <property name="text">
+        <string>загрузить json</string>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QPushButton" name="change_btn">
+      <property name="font">
+       <font>
+        <family>Gilroy</family>
+        <pointsize>-1</pointsize>
+        <weight>62</weight>
+        <italic>false</italic>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">position: absolute;
+width: 500px;
+height: 40px;
+left: 343px;
+top: 387px;
+
+font-family: 'Gilroy';
+font-style: normal;
+font-weight: 500;
+font-size: 31px;
+line-height: 38px;
+text-align: center;
+
+color: #2C2C2C;</string>
+      </property>
+      <property name="text">
+       <string>изменить файлы</string>
+      </property>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
