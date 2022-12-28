@@ -1,6 +1,8 @@
+import math
 from PyQt5 import uic
 import sys
 import pandas as pd
+import numpy as np
 import json
 from PyQt5.QtWidgets import (QApplication,
                              QDialog,
@@ -116,13 +118,39 @@ class TableModel(QAbstractTableModel):
 
 
 class Convertor:
-    def __init__(self, path):
-        self.original = pd.read_excel(path, 'исходный формат')
+    def __init__(self, excel_path, extension_path):
+        self.original = pd.read_excel(excel_path, 'исходный формат')
         self.original = self.original.fillna('')
-        self.result = pd.read_excel(path, 'нужный формат')
-        self.corr_fields = self.result.columns
         self.between = pd.DataFrame()
+        data = {}
+        if extension_path in [None, '']:
+            self.result = pd.read_excel(excel_path, 'нужный формат')
+        elif extension_path.split('.')[-1] =='json':
+            #with open(extension_path, 'r', encoding='utf-8') as file:  # открываем файл на чтение
+                #data = json.load(file)
+            self.result = pd.read_json(extension_path,orient="index")
+            #self.result = self.dict_to_dataframe(data, pd.DataFrame())
+        self.corr_fields = self.result.columns
 
+
+    def dict_to_dataframe(self, items, df):
+        if type(items) is dict:
+            for key in items.keys():
+                if type(items[key]) in [list, dict]:
+                    self.dict_to_dataframe(items[key], df)
+                else:
+                    if df.__contains__(key):
+                        if np.isnan(df[key].values(len(df)-1)):
+                            df.loc[len(df)-1, key]=items[key]
+                        else:
+                            df.loc[len(df),key] = items[key]
+                    else:
+                        df[key] = [items[key]]
+        elif type(items) is list:
+            for item in items:
+                self.dict_to_dataframe(item, df)
+
+        return df
     def execute(self, command_data):
         command = command_data[0]
         input = command_data[1]
@@ -271,13 +299,13 @@ class Convertor:
 
     def to_json(self, path):
         res = self.result.to_json(orient="index")
-        parsed = {f"{path.split('/')[-1].split('.')[0]}": json.loads(res)}
+        parsed = json.loads(res)
         with open(path, 'w', encoding='utf-8') as outfile:
             json.dump(parsed, outfile, indent=4, ensure_ascii=False)
 
 
 class WorkWindow(QDialog):
-    def __init__(self, filename, name_chose, json_path):
+    def __init__(self, excel_path, name_chose, json_path):
         super(WorkWindow, self).__init__()
         self.download_w = None
         self.name_chose = name_chose
@@ -286,8 +314,8 @@ class WorkWindow(QDialog):
         uic.loadUi('dialog_3.ui', self)
         QFontDatabase.addApplicationFont("font/Gilroy-Regular.ttf")
         # данные с екселя
-        self.filename = filename
-        self.convertor = Convertor(self.filename)
+        self.excel_path = excel_path
+        self.convertor = Convertor(self.excel_path,self.json_path)
         df_input = self.convertor.original
         df_result = self.convertor.result
         # кнопки
