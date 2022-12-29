@@ -59,7 +59,7 @@ class TableModel(QAbstractTableModel):
 
 
 class WorkWindow(QDialog):
-    def __init__(self, excel_path, name_chose):
+    def __init__(self, excel_path, name_chose, json_path):
         super(WorkWindow, self).__init__()
         self.name_chose = name_chose
         self.json_path = json_path
