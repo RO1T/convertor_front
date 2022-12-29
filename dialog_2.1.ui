@@ -14,47 +14,49 @@
    <string>Dialog</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
-   <property name="leftMargin">
-    <number>50</number>
-   </property>
-   <property name="topMargin">
-    <number>200</number>
-   </property>
-   <property name="rightMargin">
-    <number>50</number>
-   </property>
-   <property name="bottomMargin">
-    <number>100</number>
-   </property>
    <item>
-    <widget class="QLabel" name="label">
-     <property name="styleSheet">
-      <string notr="true">
+    <layout class="QGridLayout" name="gridLayout">
+     <property name="leftMargin">
+      <number>100</number>
+     </property>
+     <property name="topMargin">
+      <number>200</number>
+     </property>
+     <property name="rightMargin">
+      <number>100</number>
+     </property>
+     <property name="bottomMargin">
+      <number>100</number>
+     </property>
+     <item row="0" column="0">
+      <widget class="QLabel" name="label">
+       <property name="styleSheet">
+        <string notr="true">
 font-weight: 500;
 font-size: 20px;
 line-height: 38px;
 text-align: center;</string>
-     </property>
-     <property name="text">
-      <string>Если у вас нету специфичной структуры JSON, то используйте только excel.</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QSplitter" name="splitter_2">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <widget class="QSplitter" name="splitter">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <widget class="QPushButton" name="input_btn_ex">
-       <property name="styleSheet">
-        <string notr="true">position: absolute;
+       </property>
+       <property name="text">
+        <string>Excel обязательно, json опционально.</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0" colspan="2">
+      <widget class="QSplitter" name="splitter_2">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <widget class="QSplitter" name="splitter">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <widget class="QPushButton" name="input_btn_ex">
+         <property name="styleSheet">
+          <string notr="true">position: absolute;
 width: 493px;
 height: 114px;
 left: 350px;
@@ -75,14 +77,14 @@ line-height: 38px;
 text-align: center;
 
 color: #FFFFFF;</string>
-       </property>
-       <property name="text">
-        <string>загрузить excel</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="input_btn_js">
-       <property name="styleSheet">
-        <string notr="true">position: absolute;
+         </property>
+         <property name="text">
+          <string>загрузить excel</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="input_btn_js">
+         <property name="styleSheet">
+          <string notr="true">position: absolute;
 width: 493px;
 height: 114px;
 left: 350px;
@@ -103,24 +105,24 @@ line-height: 38px;
 text-align: center;
 
 color: #FFFFFF;</string>
-       </property>
-       <property name="text">
-        <string>загрузить json</string>
-       </property>
-      </widget>
-     </widget>
-     <widget class="QPushButton" name="change_btn">
-      <property name="font">
-       <font>
-        <family>Gilroy</family>
-        <pointsize>-1</pointsize>
-        <weight>62</weight>
-        <italic>false</italic>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">position: absolute;
+         </property>
+         <property name="text">
+          <string>загрузить json</string>
+         </property>
+        </widget>
+       </widget>
+       <widget class="QPushButton" name="change_btn">
+        <property name="font">
+         <font>
+          <family>Gilroy</family>
+          <pointsize>-1</pointsize>
+          <weight>62</weight>
+          <italic>false</italic>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">position: absolute;
 width: 500px;
 height: 40px;
 left: 343px;
@@ -134,12 +136,29 @@ line-height: 38px;
 text-align: center;
 
 color: #2C2C2C;</string>
-      </property>
-      <property name="text">
-       <string>изменить файлы</string>
-      </property>
-     </widget>
-    </widget>
+        </property>
+        <property name="text">
+         <string>изменить файлы</string>
+        </property>
+       </widget>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QPushButton" name="next_btn">
+       <property name="styleSheet">
+        <string notr="true">font-weight: 500;
+font-size: 15px;
+line-height: 38px;
+text-align: center;
+
+color: #2C2C2C;</string>
+       </property>
+       <property name="text">
+        <string>далее</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
